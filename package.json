@@ -1,27 +1,45 @@
 {
   "name": "nextjs-radix-template",
   "version": "0.1.0",
-  "private": true,
+  "description": "NextJS Radix Template",
+  "author": "Sulthon Abdul Malik",
+  "license": "UNLICENSED",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "prepare": "husky install",
+    "format": "prettier -w \"{public,src,test}/**/*.{md,html,css,scss,json,js,jsx,ts,tsx}\""
   },
   "dependencies": {
+    "@radix-ui/themes": "^2.0.3",
+    "axios": "^1.6.5",
+    "next": "14.0.4",
+    "next-auth": "^4.24.5",
+    "next-themes": "^0.2.1",
     "react": "^18",
     "react-dom": "^18",
-    "next": "14.0.4"
+    "react-hook-form": "^7.49.3",
+    "react-icons": "^5.0.1",
+    "sass": "^1.69.7",
+    "swiper": "^11"
   },
   "devDependencies": {
-    "typescript": "^5",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
     "autoprefixer": "^10.0.1",
-    "postcss": "^8",
-    "tailwindcss": "^3.3.0",
     "eslint": "^8",
-    "eslint-config-next": "14.0.4"
-  }
+    "eslint-config-next": "14.0.4",
+    "husky": "^8.0.3",
+    "lint-staged": "^15.2.0",
+    "postcss": "^8",
+    "prettier": "^3.2.2",
+    "tailwindcss": "^3.3.3",
+    "typescript": "^5"
+  },
+  "keywords": [],
+  "repository": "git@github.com/ssamsara98/nextjs-radix-template.git",
+  "bugs": "https://github.com/ssamsara98/nextjs-radix-template/issues"
 }
