@@ -11,5 +11,25 @@
   "requirePragma": false,
   "semi": true,
   "trailingComma": "all",
-  "vueIndentScriptAndStyle": false
+  "vueIndentScriptAndStyle": false,
+  "printWidth": 100,
+  "singleQuote": true,
+  "overrides": [
+    {
+      "files": "*.md",
+      "options": {
+        "printWidth": 120,
+        "useTabs": false,
+        "trailingComma": "none",
+        "arrowParens": "avoid",
+        "proseWrap": "never"
+      }
+    },
+    {
+      "files": "*.{json,babelrc,eslintrc,remarkrc,prettierrc}",
+      "options": {
+        "useTabs": false
+      }
+    }
+  ]
 }
