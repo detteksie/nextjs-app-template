@@ -36,7 +36,11 @@ export default async function RootLayout({ children }: RootLayoutProps) {
       <body
         suppressHydrationWarning
         // className={`${roboto.className} text-white bg-gradient-to-b from-transparent to-black bg-black`}
-        className={cn('min-h-screen bg-background font-sans antialiased', roboto.variable)}
+        // className={cn('min-h-screen bg-background font-sans antialiased', roboto.variable)}
+        className={cn(
+          'min-h-screen bg-background text-slate-700 dark:text-slate-300 font-sans antialiased',
+          roboto.variable,
+        )}
       >
         <Providers session={session}>{children}</Providers>
       </body>

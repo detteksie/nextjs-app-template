@@ -1,8 +1,10 @@
 import { randomBytes, randomUUID } from 'crypto';
-import { AuthOptions, User } from 'next-auth';
-import CredentialsProvider from 'next-auth/providers/credentials';
-import { serverApi } from './server-api';
+
 import { AxiosResponse } from 'axios';
+import { AuthOptions } from 'next-auth';
+import CredentialsProvider from 'next-auth/providers/credentials';
+
+import { serverApi } from './server-api';
 
 export const authOptions: AuthOptions = {
   pages: {
