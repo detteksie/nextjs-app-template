@@ -1,7 +1,8 @@
 import Img from '|/components/home/img';
 import Topper from '|/components/home/topper';
 import Under from '|/components/home/under';
-import { Button } from '|/components/ui/button';
+
+import { Buttons } from './buttons';
 
 export default function Home() {
   return (
@@ -12,14 +13,7 @@ export default function Home() {
 
       <Under />
 
-      <div className="mb-32 text-center lg:mb-0 lg:w-full lg:max-w-5xl lg:text-left space-x-2">
-        <Button>Click Me!</Button>
-        <Button variant={'ghost'}>Click Me!</Button>
-        <Button variant={'link'}>Click Me!</Button>
-        <Button variant={'outline'}>Click Me!</Button>
-        <Button variant={'secondary'}>Click Me!</Button>
-        <Button variant={'destructive'}>Click Me!</Button>
-      </div>
+      <Buttons />
     </main>
   );
 }

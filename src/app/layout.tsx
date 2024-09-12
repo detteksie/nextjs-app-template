@@ -1,15 +1,16 @@
+import '@radix-ui/themes/styles.css';
+import './globals.css';
+
 import type { Metadata } from 'next';
 import { Roboto } from 'next/font/google';
 import { getServerSession } from 'next-auth/next';
 import React from 'react';
 
+import { Toaster } from '|/components/ui/sonner';
 import { authOptions } from '|/lib/auth';
 import { cn } from '|/lib/utils';
 
 import { Providers } from './providers';
-
-import './globals.css';
-import '@radix-ui/themes/styles.css';
 
 const roboto = Roboto({
   weight: ['400', '700'],
@@ -43,6 +44,7 @@ export default async function RootLayout({ children }: RootLayoutProps) {
         )}
       >
         <Providers session={session}>{children}</Providers>
+        <Toaster />
       </body>
     </html>
   );

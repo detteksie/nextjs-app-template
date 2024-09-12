@@ -52,7 +52,7 @@ const eslintrc = {
       },
     ],
 
-    'no-unused-vars': 'warn',
+    'no-unused-vars': ['warn', { argsIgnorePattern: '^_', args: 'none' }],
   },
   settings: {
     'import/resolver': {

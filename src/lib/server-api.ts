@@ -1,4 +1,5 @@
 import axios, { AxiosError } from 'axios';
+import { getServerSession } from 'next-auth';
 import { getSession, signIn, signOut } from 'next-auth/react';
 
 export const serverApi = axios.create({
@@ -26,8 +27,6 @@ serverApi.interceptors.response.use(
 
       /** fetch refresh token */
       let refreshData = null;
-      // console.log('originalRequest', originalRequest);
-      // console.log('serverApi', serverApi);
       try {
         if (session) {
           await signIn('refresh-token', {
@@ -51,6 +50,60 @@ serverApi.interceptors.response.use(
 
       originalRequest.headers.Authorization = `${refreshData?.tokenType} ${refreshData?.accessToken}`;
       return serverApi(originalRequest);
+    }
+
+    return Promise.reject(error);
+  },
+);
+
+export const backendApi = axios.create({
+  baseURL: process.env.NEXT_PUBLIC_SERVER_URL,
+});
+
+backendApi.interceptors.response.use(
+  (response) => {
+    return response;
+  },
+  async (error: AxiosError) => {
+    const originalRequest = error?.config!;
+    // console.log('axios fetch error', error);
+    if (
+      error?.response?.status! === 401 &&
+      (error.response?.data as any).message === 'jwt expired' &&
+      !(originalRequest as any)._retry
+    ) {
+      console.log('interceptors - renew tokens');
+      (originalRequest as any)._retry = true;
+
+      /** get current session */
+      const session = await getServerSession();
+      // console.log('session', session);
+
+      /** fetch refresh token */
+      let refreshData = null;
+      try {
+        if (session) {
+          await signIn('refresh-token', {
+            redirect: false,
+            tokenType: session.tokenType,
+            refreshToken: session.refreshToken,
+          });
+          const newSession = await getServerSession();
+          if (newSession) {
+            refreshData = {
+              tokenType: newSession.tokenType,
+              accessToken: newSession.accessToken,
+            };
+          }
+        }
+        // console.log('refreshData', refreshData);
+      } catch (err) {
+        console.error('error fetching refresh-token', err);
+        await signOut();
+      }
+
+      originalRequest.headers.Authorization = `${refreshData?.tokenType} ${refreshData?.accessToken}`;
+      return backendApi(originalRequest);
     }
 
     return Promise.reject(error);

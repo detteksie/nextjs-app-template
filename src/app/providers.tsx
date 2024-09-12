@@ -8,7 +8,7 @@ import React from 'react';
 const comment = `
 
   =========================================================
-  * Notus NextJS - v1.1.0 based on Tailwind Starter Kit by Creative Tim
+  * Notus NextJS based on Tailwind Starter Kit by Creative Tim
   =========================================================
 
   * Product Page: https://www.creative-tim.com/product/notus-nextjs

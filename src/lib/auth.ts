@@ -1,10 +1,65 @@
+/* eslint-disable no-unused-vars */
 import { randomBytes, randomUUID } from 'crypto';
 
 import { AxiosResponse } from 'axios';
 import { AuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 
+import { SuccessJSON } from '|/@types';
+import { LoginRequest, LoginResponse } from '|/@types/server/auth';
+import { Profile } from '|/@types/server/default';
+
 import { serverApi } from './server-api';
+
+const accessToken = async (credentials: Record<'userSession' | 'password', string>) => {
+  try {
+    const respToken = await serverApi.post<
+      SuccessJSON<LoginResponse>,
+      AxiosResponse<SuccessJSON<LoginResponse>>,
+      LoginRequest
+    >('/login', {
+      userSession: credentials?.userSession!,
+      password: credentials?.password!,
+    });
+    return respToken;
+  } catch (err) {
+    console.error('fail - login');
+    throw new Error('CredentialsSignin');
+  }
+};
+
+const refreshToken = async (credentials: Record<'tokenType' | 'refreshToken', string>) => {
+  try {
+    const respToken = await serverApi.post<
+      SuccessJSON<LoginResponse>,
+      AxiosResponse<SuccessJSON<LoginResponse>>
+    >(
+      '/refresh-token',
+      {},
+      {
+        headers: { Authorization: `${credentials?.tokenType} ${credentials?.refreshToken}` },
+      },
+    );
+    return respToken;
+  } catch (err) {
+    console.error('fail - refresh token');
+    throw new Error('Refresh Token');
+  }
+};
+
+const profile = async (token: AxiosResponse<SuccessJSON<LoginResponse>>) => {
+  try {
+    const respProfile = await serverApi.get<SuccessJSON<Profile>>('/profile', {
+      headers: {
+        Authorization: `${token?.data?.result?.tokenType} ${token?.data?.result?.accessToken}`,
+      },
+    });
+    return respProfile;
+  } catch (err) {
+    console.error('fail - fetch profile');
+    throw new Error('CredentialsSignin');
+  }
+};
 
 export const authOptions: AuthOptions = {
   pages: {
@@ -13,8 +68,8 @@ export const authOptions: AuthOptions = {
   providers: [
     CredentialsProvider({
       // The name to display on the sign in form (e.g. 'Sign in with...')
-      id: 'server-api',
-      name: 'ServerAPI',
+      id: 'access-token',
+      name: 'AccessToken',
       // The credentials is used to generate a suitable form on the sign in page.
       // You can specify whatever fields you are expecting to be submitted.
       // e.g. domain, username, password, 2FA token, etc.
@@ -30,45 +85,12 @@ export const authOptions: AuthOptions = {
         // e.g. return { id: 1, name: 'J Smith', email: 'jsmith@example.com' }
         // You can also use the `req` object to obtain additional parameters
         // (i.e., the request IP address)
-        let respToken: AxiosResponse<{
-          tokenType: string;
-          accessToken: string;
-          refreshToken: string;
-        }> | null = null;
-        try {
-          respToken = await serverApi.post('/login', {
-            userSession: credentials?.userSession,
-            password: credentials?.password,
-          });
-        } catch (err) {
-          console.error('fail - login');
-          throw new Error('CredentialsSignin');
-        }
-
-        let respUser: AxiosResponse<{
-          id: string;
-          username: string;
-          email: string;
-          name: string;
-          picture: string;
-          sexType: string;
-          birthdate: string | null;
-          telephone: string | null;
-        }> | null = null;
-        try {
-          respUser = await serverApi.get('/profile', {
-            headers: {
-              Authorization: `${respToken?.data?.tokenType} ${respToken?.data?.accessToken}`,
-            },
-          });
-        } catch (err) {
-          console.error('fail - fetch profile');
-          throw new Error('CredentialsSignin');
-        }
+        const respToken = await accessToken(credentials!);
+        const respProfile = await profile(respToken);
 
         // If no error and we have user data, return it
-        if (respUser?.data) {
-          return { ...respUser?.data, ...respToken?.data };
+        if (respProfile?.data?.result) {
+          return { ...respProfile?.data?.result, ...respToken?.data?.result };
         }
         // Return null if user data could not be retrieved
         return null;
@@ -82,48 +104,12 @@ export const authOptions: AuthOptions = {
         refreshToken: { label: 'Refresh Token', type: 'text' },
       },
       async authorize(credentials, req) {
-        let respToken: AxiosResponse<{
-          tokenType: string;
-          accessToken: string;
-          refreshToken: string;
-        }> | null = null;
-        try {
-          respToken = await serverApi.post(
-            '/refresh-token',
-            {},
-            {
-              headers: { Authorization: `${credentials?.tokenType} ${credentials?.refreshToken}` },
-            },
-          );
-        } catch (err) {
-          console.error('fail - refresh token');
-          throw new Error('Refresh Token');
-        }
-
-        let respUser: AxiosResponse<{
-          id: string;
-          username: string;
-          email: string;
-          name: string;
-          picture: string;
-          sexType: string;
-          birthdate: string | null;
-          telephone: string | null;
-        }> | null = null;
-        try {
-          respUser = await serverApi.get('/profile', {
-            headers: {
-              Authorization: `${respToken?.data?.tokenType} ${respToken?.data?.accessToken}`,
-            },
-          });
-        } catch (err) {
-          console.error('fail - fetch profile');
-          throw new Error('Refresh Token');
-        }
+        const respToken = await refreshToken(credentials!);
+        const respProfile = await profile(respToken);
 
         // If no error and we have user data, return it
-        if (respUser?.data) {
-          return { ...respUser?.data, ...respToken?.data };
+        if (respProfile?.data) {
+          return { ...respProfile?.data?.result, ...respToken?.data?.result };
         }
         // Return null if user data could not be retrieved
         return null;
@@ -174,13 +160,14 @@ export const authOptions: AuthOptions = {
       // console.log('callback -> session');
       // console.log('params', params);
       if (params.token) {
-        params.session.user.username = (params.token as any).username;
-        params.session.user.sexType = (params.token as any).sexType;
-        params.session.user.birthdate = (params.token as any).birthdate;
-        params.session.user.telephone = (params.token as any).telephone;
-        params.session.tokenType = (params.token as any).tokenType;
-        params.session.accessToken = (params.token as any).accessToken;
-        params.session.refreshToken = (params.token as any).refreshToken;
+        const token = params.token as any;
+        params.session.user.username = token.username;
+        params.session.user.sexType = token.sexType;
+        params.session.user.birthdate = token.birthdate;
+        params.session.user.telephone = token.telephone;
+        params.session.tokenType = token.tokenType;
+        params.session.accessToken = token.accessToken;
+        params.session.refreshToken = token.refreshToken;
       }
       return params.session;
     },
